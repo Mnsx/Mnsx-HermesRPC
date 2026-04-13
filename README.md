@@ -13,5 +13,5 @@
 | [Mnsx-AchillesLink](https://github.com/Mnsx/Mnsx-AchillesLink) | Reactor模型 + Epoll多路复用 | **基于Linux原生Epoll实现的非阻塞事件循环**，杜绝I/O阻塞      |
 | [Mnsx-KrakenPool](https://github.com/Mnsx/Mnsx-KrakenPool)   | 通用性延时线程池            | **采用延时任务队列与多工作线程模式**，实现I/O线程与业务逻辑的物理隔离 |
 | [Mnsx-ArgusLog](https://github.com/Mnsx/Mnsx-ArgusLog)       | 多维度分发日志处理          | **按照生产者-消费者模型，提供拔插式异步日志处理**            |
-| Mnsx-HydraConn（开发中）                                     |                             |                                                              |
+| [Mnsx-HydraConn](https://github.com/Mnsx/Mnsx-HydraConn)（开发中） |                             |                                                              |
 
