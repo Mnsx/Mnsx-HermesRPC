@@ -3,7 +3,7 @@
  * @author Mnsx_x <xx1527030652@gmail.com>
  * @date 2026/4/11
  */
-#include "handler/FileLogHandler.h"
+#include "handler/ILogHandler.h"
 
 using namespace mnsx::argus;
 

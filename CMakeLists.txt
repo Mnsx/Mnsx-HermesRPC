@@ -1,60 +1,55 @@
 cmake_minimum_required(VERSION 3.10)
 project(Mnsx-HermesRPC LANGUAGES CXX)
 
-# ==========================================
-# 全局设置
-# ==========================================
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ==========================================
-# 依赖决议 (菱形依赖防御网)
-# ==========================================
-
-# 第一层防御：最底层的 ArgusLog
-if(NOT TARGET ArgusLog)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/argus_log/CMakeLists.txt")
-        add_subdirectory(third_party/argus_log)
-    else()
-        message(STATUS "[Hermes] ArgusLog not found locally. Relying on AchillesLink to provide it.")
-    endif()
-endif()
-
-# 第二层防御：中间网络层 AchillesLink
-if(NOT TARGET AchillesLink)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/achilles_link/CMakeLists.txt")
-        add_subdirectory(third_party/achilles_link)
-    else()
-        message(FATAL_ERROR "[Hermes] AchillesLink dependency missing!")
-    endif()
-endif()
+# 强制引入系统线程库（Kraken 和 Achilles 共同需要）
+find_package(Threads REQUIRED)
 
 # ==========================================
-# 定义核心库 (HermesRPC)
+# 1. 依赖加载顺序 (绝对不能颠倒)
 # ==========================================
-file(GLOB_RECURSE LIB_SRC_FILES "src/*.cpp")
-add_library(HermesRPC STATIC ${LIB_SRC_FILES})
 
-# 暴露 Hermes 自己的头文件
+# 必须首先加载全局唯一的日志基石
+add_subdirectory(third_party/argus_log)
+
+# 此时 ArgusLog 目标已存在，Achilles 和 Kraken 内部的 link 命令将自动指向它
+add_subdirectory(third_party/achilles_link)
+add_subdirectory(third_party/kraken_pool)
+
+# ==========================================
+# 2. 构建 HermesRPC 核心库
+# ==========================================
+file(GLOB_RECURSE HERMES_SRC "src/*.cpp")
+add_library(HermesRPC STATIC ${HERMES_SRC})
+
+# 暴露 Hermes 自己的头文件路径
 target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(HermesRPC PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(HermesRPC PRIVATE -fexec-charset=UTF-8)
-endif()
+# 【视野破壁】：这里已经全部修改为 PUBLIC，让 ServerDemo 能够看到底层的 TcpServer.h
+target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/achilles_link/include)
+target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/argus_log/include)
+target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/kraken_pool/include)
 
-# ==========================================
-# 链接组装 (极简纯净版)
-# ==========================================
+# 链接三大基石组件
 target_link_libraries(HermesRPC PUBLIC
-        achilles_link
-        argus_log
+        AchillesLink
+        KrakenPool
+        ArgusLog
+        Threads::Threads
 )
 
-# ==========================================
-# 示例程序 (Demo)
-# ==========================================
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/examples/BasicUsage.cpp")
-    add_executable(HermesDemo examples/BasicUsage.cpp)
-    target_link_libraries(HermesDemo PRIVATE HermesRPC)
+# 确保全局编码统一
+if(MSVC)
+    add_compile_options(/utf-8)
 endif()
+
+# ==========================================
+# 3. 编译靶场测试程序
+# ==========================================
+add_executable(ServerDemo examples/ServerDemo.cpp)
+target_link_libraries(ServerDemo PRIVATE HermesRPC)
+
+add_executable(ClientDemo examples/ClientDemo.cpp)
+target_link_libraries(ClientDemo PRIVATE HermesRPC)

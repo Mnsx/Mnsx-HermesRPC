@@ -1,32 +1,18 @@
 cmake_minimum_required(VERSION 3.10)
-project(Mnsx_AchillesLink LANGUAGES CXX)
+project(AchillesLink LANGUAGES CXX)
 
-# ==========================================
-# 全局设置
-# ==========================================
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+add_library(AchillesLink STATIC ${SRC_FILES})
 
-find_package(Threads REQUIRED)
+# 暴露头文件给上层
+target_include_directories(AchillesLink PUBLIC
+       ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
-# ==========================================
-# 引入基建 (强制依赖)
-# ==========================================
-if(NOT TARGET ArgusLog)
-    add_subdirectory(third_party/argus_log)
-endif()
+# 【核心逻辑】: 这里不执行 add_subdirectory(argus)
+# 直接链接由顶级 CMake 提供的 ArgusLog 目标
+target_link_libraries(AchillesLink PUBLIC
+        ArgusLog
+)
 
-# ==========================================
-# 定义核心库 (AchillesLink)
-# ==========================================
-file(GLOB_RECURSE LIB_SRC_FILES "src/*.cpp")
-add_library(AchillesLink STATIC ${LIB_SRC_FILES})
-
-target_include_directories(AchillesLink PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(AchillesLink PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(AchillesLink PRIVATE -fexec-charset=UTF-8)
-endif()
-
-target_link_libraries(AchillesLink PUBLIC Threads::Threads ArgusLog)
+target_compile_features(AchillesLink PUBLIC cxx_std_11)

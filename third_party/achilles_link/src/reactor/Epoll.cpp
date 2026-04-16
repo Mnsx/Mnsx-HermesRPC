@@ -6,7 +6,7 @@
  */
 #include "Epoll.h"
 #include "Channel.h"
-#include "net/InetAddress.h"
+#include "../net/InetAddress.h"
 #include "Logger.h"
 
 #include <stdexcept>

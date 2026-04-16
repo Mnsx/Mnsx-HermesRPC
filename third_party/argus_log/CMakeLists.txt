@@ -1,34 +1,19 @@
 cmake_minimum_required(VERSION 3.10)
-project(Mnsx-ArgusLog LANGUAGES CXX)
+project(ArgusLog LANGUAGES CXX)
 
-# ==========================================
-# 全局设置
-# ==========================================
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# 添加thread
-find_package(Threads REQUIRED)
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+add_library(ArgusLog STATIC ${SRC_FILES})
 
-# ==========================================
-# 定义 ArgusLog 核心静态库
-# ==========================================
-add_library(ArgusLog STATIC
-        src/Logger.cpp
-        src/handler/ILogHandler.cpp
-        src/handler/FileLogHandler.cpp
-        src/handler/ConsoleLogHandler.cpp
-        src/LogHandlerManager.cpp
-)
-
+# 【PUBLIC】: 供 Hermes, Achilles, Kraken 链接使用
+# 使用者只需写: #include "handler/LogHandlerManager.h"
 target_include_directories(ArgusLog PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+       ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(ArgusLog PRIVATE -fexec-charset=UTF-8)
-endif()
+# 【PRIVATE】: 仅供 Argus 内部编译使用
+# 解决内部代码写 #include "include/handler/LogHandlerManager.h" 找不到文件的问题
+target_include_directories(ArgusLog PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-target_compile_definitions(ArgusLog PRIVATE PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}/")
-
-# 连接多线程库
-target_link_libraries(ArgusLog PRIVATE Threads::Threads)
+target_compile_features(ArgusLog PUBLIC cxx_std_11)
