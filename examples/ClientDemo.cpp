@@ -10,7 +10,6 @@
  */
 #include "RpcClient.h"
 #include "reactor/EventLoop.h"
-#include "KrakenPool.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -23,10 +22,9 @@ int main() {
 
     // 1. 准备底盘：网络引擎与海妖线程池
     mnsx::achilles::EventLoop loop;
-    mnsx::kraken::KrakenPool kraken(4); // 召唤 4 根海妖触手
 
     // 2. 组装客户端
-    RpcClient client(&loop, &kraken, "0.0.0.0", 8080);
+    RpcClient client(&loop, "0.0.0.0", 8080);
 
     // ==========================================
     // 3. 【极度核心】：在独立线程点火网络引擎
@@ -53,10 +51,7 @@ int main() {
         stream << data;
 
         // 调用 asyncCall，瞬间返回，绝对不阻塞主线程！
-        client.call("Valkyrie.Report", stream.data(), [i](const std::string& resp) {
-            // 【这行代码运行在 KrakenPool 的某个工作线程里】
-            std::cout << "[Kraken Thread] 收到第 " << i << " 次请求的回执: " << resp << std::endl;
-        });
+        client.call("Valkyrie.Report", stream.data());
 
         std::cout << "[Client Main] 已发送: " << data << std::endl;
     }

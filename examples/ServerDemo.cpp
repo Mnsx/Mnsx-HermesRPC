@@ -34,11 +34,5 @@ int main() {
 
     std::cout << "[Valkyrie Hub] 神经中枢已上线，等待前线节点接入..." << std::endl;
 
-    // 4. 挂起主线程，让服务器持续运行
-    // (如果你的 RpcServer 的 start() 没有自带阻塞的 loop_.loop()，请在这里用死循环防止 main 退出)
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
     return 0;
 }

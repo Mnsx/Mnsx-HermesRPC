@@ -16,7 +16,6 @@ add_subdirectory(third_party/argus_log)
 
 # 此时 ArgusLog 目标已存在，Achilles 和 Kraken 内部的 link 命令将自动指向它
 add_subdirectory(third_party/achilles_link)
-add_subdirectory(third_party/kraken_pool)
 
 # ==========================================
 # 2. 构建 HermesRPC 核心库
@@ -30,12 +29,10 @@ target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # 【视野破壁】：这里已经全部修改为 PUBLIC，让 ServerDemo 能够看到底层的 TcpServer.h
 target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/achilles_link/include)
 target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/argus_log/include)
-target_include_directories(HermesRPC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/kraken_pool/include)
 
 # 链接三大基石组件
 target_link_libraries(HermesRPC PUBLIC
         AchillesLink
-        KrakenPool
         ArgusLog
         Threads::Threads
 )
